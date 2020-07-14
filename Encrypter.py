@@ -1,6 +1,20 @@
 #!/usr/bin/python3
 ################################################
+'''
+- This script takes the file input from the user.
+- Break the file into parts each with 25KB size
+- Encrypt those parts
+- Move those parts to the 2 folders provided by user 
+- Odd parts to be added to the folder2 & even to folder1
+- All the record of the files and parts is to be maintined in the database file 
+- The database file containing the records is also encrypted based in the key/password provided by the user.
+- It can also encrypt the complete folders performing the above mentioned operations on each of the files of in the folder
+- All the encryption here in this is Symmetric AES CBC
 
+
+Author: Umair Ahmed (E@gle Invectus)
+Created on: 29th Mar, 2020
+'''
 
 # Some important Libraries to be added
 from Crypto import Random
