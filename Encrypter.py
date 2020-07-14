@@ -201,4 +201,77 @@ class Encryptor:
 			fileobj.close()
 		output.close()
 
+def main():
+	if os.path.isfile('data.db.enc'):
+		while True:
+			password = str(input("Enter password: "))
+			enc = Encryptor(bytes(password,"utf-8"))
+			enc.decrypt_file("data.db.enc")
+############################
+# to be tackled Latter		
+		# if not enc.decrypt_file("data.db.enc"):
+		# 	print("Wrong Password Entered!")
+		# 	time.sleep(1)
+		# 	exit()
+#######################
+			p = ''
+			db=sqlite3.connect("data.db")
+			cursor = db.execute("select pwd from Password")
+			for line in cursor:
+				p+=line[0]
+			if p == password:
+				db.close()
+				enc.encrypt_file("data.db")
+				break
 
+		while True:
+			clear()
+			choice = int(input(
+				"1. Press '1' to encrypt file.\n2. Press '2' to decrypt file.\n3. Press '3' to Encrypt all files in the directory.\n4. Press '4' to decrypt all files in the directory.\n5. Press '5' to exit.\n"))
+			clear()
+			if choice == 1:
+				enc.decrypt_file("data.db.enc")
+				filename=str(input("Enter name of file to encrypt: "))
+				enc.splitFile(os.getcwd()+"/"+filename,os.getcwd()+"/folder",25000)
+				enc.hideChunks(filename,os.getcwd()+"/folder",os.getcwd()+"/folder1",os.getcwd()+"/folder2")
+				enc.encrypt_file("data.db")
+			elif choice == 2:
+				enc.decrypt_file("data.db.enc")
+				filename=str(input("Enter name of file to decrypt: "))
+				enc.retrieveChunks(os.getcwd()+"/folder",filename,os.getcwd()+"/folder1",os.getcwd()+"/folder2")
+				enc.joinFile(os.getcwd()+"/folder",os.getcwd()+"/"+filename,25000)
+				enc.encrypt_file("data.db")
+			elif choice == 3:
+				enc.encrypt_all_files()
+			elif choice == 4:
+				enc.decrypt_all_files()
+			elif choice == 5:
+				exit()
+			else:
+				print("Please select a valid option!")
+
+	else:
+		while True:
+			clear()
+			password = str(input("Setting up stuff. Enter a password that will be used for decryption: "))
+			repassword = str(input("Confirm password: "))
+			if password == repassword:
+				enc = Encryptor(bytes(password,"utf-8"))
+				break
+			else:
+				print("Passwords Mismatched!")
+		db=sqlite3.connect("data.db")
+		db.execute("create table if not exists Password(pwd varchar(500) primary key)")
+		db.execute("create table if not exists Files(fname varchar(500) primary key, parts varchar(500))")
+		db.execute("insert into Password(pwd) values('"+password.strip()+"')")
+		db.commit()
+		db.close()
+
+	#######################
+		enc.encrypt_file("data.db")
+		print("Please restart the program after exit to complete the setup")
+		time.sleep(2)
+
+
+if __name__ == '__main__':
+	main()
