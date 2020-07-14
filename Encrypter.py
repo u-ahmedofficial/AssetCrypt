@@ -99,3 +99,106 @@ class Encryptor:
 		os.remove(file_name)
 
 
+# This method is responsible for splitting the files into pieces
+	def splitFile(self,fromfile, todir, chunksize):
+		file = fromfile.split("/")[-1]
+		if not os.path.exists(todir):                  # caller handles errors
+			os.mkdir(todir)                            # make dir, read/write parts
+		else:
+			for fname in os.listdir(todir):            # delete any existing files
+				os.remove(os.path.join(todir, fname)) 
+		
+		time.sleep(1)
+		input1 = open(fromfile, 'rb')                   # use binary mode on Windows
+		while True:                                       # eof=empty string from read
+			chunk = input1.read(chunksize)              # get next part <= chunksize
+			if not chunk: break
+			self.partnum  = self.partnum+1
+			filename = os.path.join(todir, ("{}{:04}".format(file,self.partnum)))
+			fileobj  = open(filename, 'wb')
+			fileobj.write(chunk)
+			fileobj.close() 
+			self.encrypt_file(filename)                           # or simply open(  ).write(  )
+		input1.close()
+
+		os.remove(fromfile)
+
+
+# This is to retrieve the chunks from their locations
+	def retrieveChunks(self,todir,filename,folder1,folder2):
+		if not os.path.exists(todir):                  # caller handles errors
+			os.mkdir(todir) 
+		else:
+			for fname in os.listdir(todir):            # delete any existing files
+				os.remove(os.path.join(todir, fname)) 
+		time.sleep(1)
+		db = sqlite3.connect("data.db")
+		cursor = db.execute("select parts from Files where fname='"+filename.strip()+"'")
+		files=""
+
+		data = cursor.fetchall()
+		
+		if len(data) == 0:
+			print("There is no such encrypted file!")
+			time.sleep(1)
+			db.commit()
+			db.close()
+			self.encrypt_file("data.db")
+			exit()
+
+		for line in data:				
+			files+=''.join(line)
+
+		filechunks = files.split(",")[:-1]
+
+		for fi in filechunks:
+			if (int(fi.split(".")[-2][-4:]) % 2 ) == 0:
+				shutil.move(os.path.join(folder1,fi),os.path.join(todir,fi))
+			else:
+				shutil.move(os.path.join(folder2,fi),os.path.join(todir,fi))
+
+		for fname in os.listdir(todir):           # decrypt parts
+				self.decrypt_file(os.path.join(todir, fname))
+		db.execute("delete from Files where fname='"+filename.strip()+"'")
+		db.commit()
+		db.close()
+
+# this is to hide the parts of files to different locations
+	def hideChunks(self,filename,fromdir,folder1,folder2):
+		files=""
+		
+		if not os.path.exists(folder1):                  # caller handles errors
+			os.mkdir(folder1)
+		if not os.path.exists(folder2):                  # caller handles errors
+			os.mkdir(folder2)  
+
+		time.sleep(1)
+		for fname in os.listdir(fromdir):            # decrypt parts
+				files+=fname+","
+				if (int(fname.split(".")[-2][-4:]) % 2 ) == 0 :
+					shutil.move(os.path.join(fromdir,fname),os.path.join(folder1,fname))
+				else:
+					shutil.move(os.path.join(fromdir,fname),os.path.join(folder2,fname))
+		db=sqlite3.connect("data.db")
+		db.execute("insert into Files(fname,parts) values('"+filename+"','"+files+"')")
+		db.commit()
+		for fname in os.listdir(fromdir):
+			os.remove(os.path.join(fromdir,fname))
+		db.close()
+
+# Joining the file chunks to remake the original file
+	def joinFile(self,fromdir, tofile,readsize):
+		output = open(tofile, 'wb')
+		parts  = os.listdir(fromdir)
+		parts.sort()
+		for filename in parts:
+			filepath = os.path.join(fromdir, filename)
+			fileobj  = open(filepath, 'rb')
+			while 1:
+				filebytes = fileobj.read(readsize)
+				if not filebytes: break
+				output.write(filebytes)
+			fileobj.close()
+		output.close()
+
+
