@@ -1,5 +1,5 @@
 
-# AssetCRYPT - A Ransomeware Oriented secret Files Encryption Software 
+# AssetCRYPT - A Ransomeware Oriented Secret Files Encryption Software 
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -45,7 +45,6 @@ Usage: python3 Encrypter.py
 
 
 ## Contributing 
----
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
