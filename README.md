@@ -30,7 +30,7 @@ Usage: python3 Encrypter.py
 
 ```
 
-![GIF demo](https://github.com/u-ahmedofficial/AssetCrypt/blob/master/AssetCryptReal.gif)
+![GIF demo](https://github.com/u-ahmedofficial/AssetCrypt/blob/master/AssetCrypt.gif)
 
 
 **Installation Options**
